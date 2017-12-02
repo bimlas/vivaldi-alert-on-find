@@ -5,7 +5,7 @@ var webviewContainerObserver = new MutationObserver(
                 mutation.addedNodes.forEach(function (node) {
                     console.log('webviewContainer mutation:', node);
                     if(node.classList.contains('find-in-page')) {
-                        initFindInPageResultsObserver(node);
+                        initFindInPageObserver(node);
                     }
                 });
             }
@@ -29,21 +29,28 @@ var webviewContainerObserverConfig = {
     webviewContainerObserver.observe(webviewContainer, webviewContainerObserverConfig);
 })();
 
-var findInPageResultsObserver = new MutationObserver(function (mutations) {
+var findInPageObserver = new MutationObserver(function (mutations) {
     mutations.forEach(function (mutation) {
-        alertOnStartingOver(mutation.target);
+        console.log('findInPageResults mutation:', mutation.target);
+        if (mutation.target.id === 'fip-input-text') {
+            setTimeout(function () {
+                saveInitialCounter(mutation.target);
+            }, 100);
+        } else if (mutation.type === 'characterData') {
+            alertOnStartingOver(mutation.target);
+        }
     });
 });
-var findInPageResultsObserverConfig = {
+var findInPageObserverConfig = {
     characterData: true,
-    attributes: false,
+    attributes: true,
     childList: false,
     subtree: true
 };
 
-function initFindInPageResultsObserver(target) {
-    console.log('initFindInPageResultsObserver', target);
-    findInPageResultsObserver.observe(target, findInPageResultsObserverConfig);
+function initFindInPageObserver(target) {
+    console.log('initFindInPageObserver', target);
+    findInPageObserver.observe(target, findInPageObserverConfig);
 }
 
 var alertMessageContainer = document.createElement('div');
@@ -52,11 +59,17 @@ var alertMessage = document.createElement('div');
 alertMessage.textContent = 'Searching started over';
 alertMessageContainer.appendChild(alertMessage);
 
+function saveInitialCounter(fipInputText) {
+    webpageview = fipInputText.parentNode.parentNode.parentNode.parentNode;
+    webpageview.findInPageAlertInitialCounter = fipInputText.parentNode.getElementsByClassName('fip-results')[0].textContent;
+    console.log('saveInitialCounter', webpageview.findInPageAlertInitialCounter);
+}
+
 function alertOnStartingOver(results) {
     console.log('alertOnStartingOver', results);
-    counter = results.textContent.split(' / ');
+    counter = results.textContent;
     webpageview = results.parentNode.parentNode.parentNode.parentNode.parentNode;
-    if ((counter[0] === counter[1]) && !webpageview.contains(webpageview.findInPageAlert)) {
+    if ((counter === webpageview.findInPageAlertInitialCounter) && !webpageview.contains(webpageview.findInPageAlert)) {
         webpageview.findInPageAlert = webpageview.appendChild(alertMessageContainer);
         setTimeout(function () {
             webpageview.removeChild(webpageview.findInPageAlert);
