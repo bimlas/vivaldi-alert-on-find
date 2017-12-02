@@ -1,87 +1,98 @@
 var DEBUG = false;
 
+(function observeFindInPageInstanceCreated() {
+    DEBUG && console.log('observeFindInPageInstanceCreated');
+    var webviewContainer = document.querySelector('#webview-container');
+    if (webviewContainer === null) {
+        setTimeout(observeFindInPageInstanceCreated, 300);
+        return;
+    }
+    webviewContainerObserver.observe(webviewContainer, {
+        characterData: false,
+        attributes: false,
+        childList: true,
+        subtree: true
+    });
+})();
+
 var webviewContainerObserver = new MutationObserver(
-    function(mutations){
-        mutations.forEach(function(mutation){
-            if(mutation.type === 'childList' && mutation.addedNodes.length > 0){
+    function (mutations) {
+        mutations.forEach(function (mutation) {
+            if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
                 mutation.addedNodes.forEach(function (node) {
                     DEBUG && console.log('webviewContainer mutation: addedNode: ', node);
-                    if(node.classList.contains('find-in-page')) {
-                        initFindInPageObserver(node);
+                    if (node.classList.contains('find-in-page')) {
+                        node.alertParentNode = getClosestParentByClass(node, 'webpageview');
+                        observeFindInPageChanged.observe(node, {
+                            characterData: true,
+                            attributes: true,
+                            childList: false,
+                            subtree: true
+                        });
                     }
                 });
             }
         });
     }
 );
-var webviewContainerObserverConfig = {
-    characterData: false,
-    attributes: false,
-    childList: true,
-    subtree: true
-};
 
-(function observeWebviewContainer() {
-    DEBUG && console.log('observeWebviewContainer');
-    var webviewContainer = document.querySelector('#webview-container');
-    if (webviewContainer === null) {
-        setTimeout(observeWebviewContainer, 300);
-        return;
-    }
-    webviewContainerObserver.observe(webviewContainer, webviewContainerObserverConfig);
-})();
-
-var findInPageObserver = new MutationObserver(function (mutations) {
+var observeFindInPageChanged = new MutationObserver(function (mutations) {
     mutations.forEach(function (mutation) {
         DEBUG && console.log('findInPageResults mutation:', mutation.type, mutation.target);
         if (mutation.target.id === 'fip-input-text') {
-            setTimeout(function () {
-                saveInitialCounter(mutation.target);
-            }, 100);
+            saveInitialState(mutation.target);
         } else if (mutation.type === 'characterData') {
-            alertOnStartingOver(mutation.target);
+            alertIfStartedOver(mutation.target);
         }
     });
 });
-var findInPageObserverConfig = {
-    characterData: true,
-    attributes: true,
-    childList: false,
-    subtree: true
-};
 
-function initFindInPageObserver(target) {
-    DEBUG && console.log('initFindInPageObserver', target);
-    findInPageObserver.observe(target, findInPageObserverConfig);
+function saveInitialState(fipInputText) {
+    setTimeout(function waitUntilAllMatchCounted() {
+        saveInitialValues(fipInputText);
+    }, 100);
 }
 
-var alertMessageContainer = document.createElement('div');
-alertMessageContainer.className = 'find-in-page-alert';
-var alertMessage = document.createElement('div');
-alertMessage.textContent = 'Searching started over';
-alertMessageContainer.appendChild(alertMessage);
-
-function saveInitialCounter(fipInputText) {
-    webpageview = fipInputText.parentNode.parentNode.parentNode.parentNode;
-    webpageview.findInPageAlertInitialCounter = fipInputText.parentNode.getElementsByClassName('fip-results')[0].textContent;
-    webpageview.findInPageAlertSearchFor = fipInputText.value;
-    DEBUG && console.log('saveInitialCounter', webpageview.findInPageAlertInitialCounter);
+function saveInitialValues(fipInputText) {
+    var fip = getClosestParentByClass(fipInputText, 'find-in-page');
+    fip.alertInitialCounter = fip.querySelector('.fip-results').textContent;
+    fip.alertSearchFor = fipInputText.value;
+    DEBUG && console.log('saveInitialValues', fip.alertInitialCounter, fip.alertSearchFor);
 }
 
-function alertOnStartingOver(results) {
-    DEBUG && console.log('alertOnStartingOver', results);
+function alertIfStartedOver(results) {
+    DEBUG && console.log('alertIfStartedOver', results);
     var counter = results.textContent;
-    var fipInputText = results.parentNode.parentNode.querySelector('#fip-input-text');
-    webpageview = results.parentNode.parentNode.parentNode.parentNode.parentNode;
-    if ((counter === webpageview.findInPageAlertInitialCounter)
-        && !webpageview.contains(webpageview.findInPageAlert)
-        && fipInputText.value === webpageview.findInPageAlertSearchFor) {
-        webpageview.findInPageAlert = webpageview.appendChild(alertMessageContainer);
-        setTimeout(function () {
-            webpageview.removeChild(webpageview.findInPageAlert);
-        }, 3000);
-        results.parentNode.style.backgroundColor = 'red';
-    } else {
-        results.parentNode.style.backgroundColor = null;
+    // Text object has no classList, so parent has to be passed.
+    var fip = getClosestParentByClass(results.parentNode, 'find-in-page');
+    var fipInputText = fip.querySelector('#fip-input-text');
+    var newFindEntryOpenedWithoutChangingText = fip.alertSearchFor === undefined;
+    if (newFindEntryOpenedWithoutChangingText) {
+        saveInitialState(fipInputText);
+        return;
     }
+    if ((counter === fip.alertInitialCounter) &&
+        (fipInputText.value === fip.alertSearchFor) &&
+        (!fip.alertParentNode.contains(fip.alertParentNode.alert))) {
+        showAlertOnNode(fip.alertParentNode);
+    }
+}
+
+function showAlertOnNode(node) {
+    var alertMessageContainer = document.createElement('div');
+    alertMessageContainer.className = 'find-in-page-alert';
+    var alertMessage = document.createElement('div');
+    alertMessage.textContent = 'Searching started over';
+    alertMessageContainer.appendChild(alertMessage);
+    node.alert = node.appendChild(alertMessageContainer);
+    setTimeout(function () {
+        node.removeChild(node.alert);
+    }, 3000);
+}
+
+function getClosestParentByClass(node, className) {
+    while (!(node.classList.contains(className))) {
+        node = node.parentNode;
+    }
+    return node;
 }
