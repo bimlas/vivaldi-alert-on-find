@@ -1,9 +1,11 @@
+var DEBUG = false;
+
 var webviewContainerObserver = new MutationObserver(
     function(mutations){
         mutations.forEach(function(mutation){
             if(mutation.type === 'childList' && mutation.addedNodes.length > 0){
                 mutation.addedNodes.forEach(function (node) {
-                    console.log('webviewContainer mutation: addedNode: ', node);
+                    DEBUG && console.log('webviewContainer mutation: addedNode: ', node);
                     if(node.classList.contains('find-in-page')) {
                         initFindInPageObserver(node);
                     }
@@ -20,7 +22,7 @@ var webviewContainerObserverConfig = {
 };
 
 (function observeWebviewContainer() {
-    console.log('observeWebviewContainer');
+    DEBUG && console.log('observeWebviewContainer');
     var webviewContainer = document.querySelector('#webview-container');
     if (webviewContainer === null) {
         setTimeout(observeWebviewContainer, 300);
@@ -31,7 +33,7 @@ var webviewContainerObserverConfig = {
 
 var findInPageObserver = new MutationObserver(function (mutations) {
     mutations.forEach(function (mutation) {
-        console.log('findInPageResults mutation:', mutation.type, mutation.target);
+        DEBUG && console.log('findInPageResults mutation:', mutation.type, mutation.target);
         if (mutation.target.id === 'fip-input-text') {
             setTimeout(function () {
                 saveInitialCounter(mutation.target);
@@ -49,7 +51,7 @@ var findInPageObserverConfig = {
 };
 
 function initFindInPageObserver(target) {
-    console.log('initFindInPageObserver', target);
+    DEBUG && console.log('initFindInPageObserver', target);
     findInPageObserver.observe(target, findInPageObserverConfig);
 }
 
@@ -63,11 +65,11 @@ function saveInitialCounter(fipInputText) {
     webpageview = fipInputText.parentNode.parentNode.parentNode.parentNode;
     webpageview.findInPageAlertInitialCounter = fipInputText.parentNode.getElementsByClassName('fip-results')[0].textContent;
     webpageview.findInPageAlertSearchFor = fipInputText.value;
-    console.log('saveInitialCounter', webpageview.findInPageAlertInitialCounter);
+    DEBUG && console.log('saveInitialCounter', webpageview.findInPageAlertInitialCounter);
 }
 
 function alertOnStartingOver(results) {
-    console.log('alertOnStartingOver', results);
+    DEBUG && console.log('alertOnStartingOver', results);
     var counter = results.textContent;
     var fipInputText = results.parentNode.parentNode.querySelector('#fip-input-text');
     webpageview = results.parentNode.parentNode.parentNode.parentNode.parentNode;
