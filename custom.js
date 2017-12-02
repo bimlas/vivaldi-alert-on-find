@@ -58,11 +58,11 @@ function alertOnStartingOver(results) {
     webpageview = results.parentNode.parentNode.parentNode.parentNode.parentNode;
     if ((counter[0] === counter[1]) && !webpageview.contains(webpageview.findInPageAlert)) {
         webpageview.findInPageAlert = webpageview.appendChild(alertMessageContainer);
+        setTimeout(function () {
+            webpageview.removeChild(webpageview.findInPageAlert);
+        }, 3000);
         results.parentNode.style.backgroundColor = 'red';
     } else {
-        if (webpageview.contains(webpageview.findInPageAlert)) {
-            webpageview.removeChild(webpageview.findInPageAlert);
-        }
         results.parentNode.style.backgroundColor = null;
     }
 }
