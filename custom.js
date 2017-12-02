@@ -3,7 +3,7 @@ var webviewContainerObserver = new MutationObserver(
         mutations.forEach(function(mutation){
             if(mutation.type === 'childList' && mutation.addedNodes.length > 0){
                 mutation.addedNodes.forEach(function (node) {
-                    console.log('webviewContainer mutation:', node);
+                    console.log('webviewContainer mutation: addedNode: ', node);
                     if(node.classList.contains('find-in-page')) {
                         initFindInPageObserver(node);
                     }
@@ -31,7 +31,7 @@ var webviewContainerObserverConfig = {
 
 var findInPageObserver = new MutationObserver(function (mutations) {
     mutations.forEach(function (mutation) {
-        console.log('findInPageResults mutation:', mutation.target);
+        console.log('findInPageResults mutation:', mutation.type, mutation.target);
         if (mutation.target.id === 'fip-input-text') {
             setTimeout(function () {
                 saveInitialCounter(mutation.target);
@@ -62,14 +62,18 @@ alertMessageContainer.appendChild(alertMessage);
 function saveInitialCounter(fipInputText) {
     webpageview = fipInputText.parentNode.parentNode.parentNode.parentNode;
     webpageview.findInPageAlertInitialCounter = fipInputText.parentNode.getElementsByClassName('fip-results')[0].textContent;
+    webpageview.findInPageAlertSearchFor = fipInputText.value;
     console.log('saveInitialCounter', webpageview.findInPageAlertInitialCounter);
 }
 
 function alertOnStartingOver(results) {
     console.log('alertOnStartingOver', results);
-    counter = results.textContent;
+    var counter = results.textContent;
+    var fipInputText = results.parentNode.parentNode.querySelector('#fip-input-text');
     webpageview = results.parentNode.parentNode.parentNode.parentNode.parentNode;
-    if ((counter === webpageview.findInPageAlertInitialCounter) && !webpageview.contains(webpageview.findInPageAlert)) {
+    if ((counter === webpageview.findInPageAlertInitialCounter)
+        && !webpageview.contains(webpageview.findInPageAlert)
+        && fipInputText.value === webpageview.findInPageAlertSearchFor) {
         webpageview.findInPageAlert = webpageview.appendChild(alertMessageContainer);
         setTimeout(function () {
             webpageview.removeChild(webpageview.findInPageAlert);
