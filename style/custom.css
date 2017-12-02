@@ -1,0 +1,18 @@
+.find-in-page-alert {
+    display: flex;
+    position: absolute;
+    z-index: 1;
+    width: 100%;
+    top: 60%;
+    justify-content: center;
+    animation: pop 400ms;
+}
+
+.find-in-page-alert div {
+    display: flex;
+    flex: 0 0 auto;
+    padding: 12px;
+    border-radius: var(--radius);
+    background-color: var(--colorHighlightBg);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}

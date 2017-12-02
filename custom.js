@@ -3,8 +3,9 @@ var webviewContainerObserver = new MutationObserver(
         mutations.forEach(function(mutation){
             if(mutation.type === 'childList' && mutation.addedNodes.length > 0){
                 mutation.addedNodes.forEach(function (node) {
-                    if(node.className === 'find-in-page') {
-                        initFindBoxObserver(node);
+                    console.log('webviewContainer mutation:', node);
+                    if(node.classList.contains('find-in-page')) {
+                        initFindInPageResultsObserver(node);
                     }
                 });
             }
@@ -40,17 +41,28 @@ var findInPageResultsObserverConfig = {
     subtree: true
 };
 
-function initFindBoxObserver(target) {
-    console.log('initFindBoxObserver', target);
+function initFindInPageResultsObserver(target) {
+    console.log('initFindInPageResultsObserver', target);
     findInPageResultsObserver.observe(target, findInPageResultsObserverConfig);
 }
+
+var alertMessageContainer = document.createElement('div');
+alertMessageContainer.className = 'find-in-page-alert';
+var alertMessage = document.createElement('div');
+alertMessage.textContent = 'Searching started over';
+alertMessageContainer.appendChild(alertMessage);
 
 function alertOnStartingOver(results) {
     console.log('alertOnStartingOver', results);
     counter = results.textContent.split(' / ');
-    if (counter[0] === counter[1]) {
+    webpageview = results.parentNode.parentNode.parentNode.parentNode.parentNode;
+    if ((counter[0] === counter[1]) && !webpageview.contains(webpageview.findInPageAlert)) {
+        webpageview.findInPageAlert = webpageview.appendChild(alertMessageContainer);
         results.parentNode.style.backgroundColor = 'red';
     } else {
+        if (webpageview.contains(webpageview.findInPageAlert)) {
+            webpageview.removeChild(webpageview.findInPageAlert);
+        }
         results.parentNode.style.backgroundColor = null;
     }
 }
