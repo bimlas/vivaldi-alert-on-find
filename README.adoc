@@ -1,0 +1,11 @@
+= "Find in window" visual alert on starting the search over again
+
+image::https://i.imgur.com/J572HYC.gif[screencast]
+
+Please
+https://forum.vivaldi.net/topic/24172/searching-should-alert-when-the-first-match-where-the-search-began-reached-again[upvote
+the feature request] if you like it!
+
+== Installation instructions
+
+https://forum.vivaldi.net/topic/10549/modding-vivaldi?page=1[Modding Vivaldi]
