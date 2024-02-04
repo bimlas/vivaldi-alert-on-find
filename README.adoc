@@ -1,7 +1,6 @@
 = "Find in window" visual alert on starting the search over again
 
-* https://gitlab.com/bimlas/vivaldi-alert-on-find (official repository)
-* https://github.com/bimlas/vivaldi-alert-on-find (mirror, please give a star if you like it)
+* https://github.com/bimlas/vivaldi-alert-on-find (please give a star if you like it)
 
 image::https://i.imgur.com/J572HYC.gif[screencast]
 
